@@ -1,11 +1,12 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from sqlalchemy.orm import Session, joinedload, joinedload
 from database import get_db
 from models import Patient, Chambre
 from schemas.patient import PatientCreate, PatientResponse
 from schemas.chambre import ChambreResponse
-from algo import solver
+from algo.solver import solver
 
 router = APIRouter(prefix="/patients", tags=["Patients"])
 
@@ -69,30 +70,39 @@ def delete_patient(p_id:int, db: Session = Depends(get_db)):
 
 
 
-@router.post("/assign-group")
-def assign_group_of_patients(patient_ids: List[int], db: Session = Depends(get_db)):
-    # 1. Récupérer uniquement les patients non encore affectés parmi la sélection
-    # (ou tous si tu permets la ré-affectation)
-    patients_to_assign = db.query(Patient).filter(
-        Patient.id.in_(patient_ids),
-        Patient.chambre_id == None  # On ne traite que ceux qui attendent une chambre
-    ).all()
-    
-    if not patients_to_assign:
-        return {"status": "info", "message": "Aucun patient à affecter"}
+# On définit un schéma plus simple pour l'auto-assignation (juste les IDs)
+class AutoAssignRequest(BaseModel):
+    patient_ids: List[int]
+@router.put("/assign", response_model=dict)
+def bulk_assign_with_solver(data: AutoAssignRequest, db: Session = Depends(get_db)):
+    # 1. Récupération avec chargement des relations pour éviter les bugs dans l'algo
+    patients_selectionnes = db.query(Patient).filter(Patient.id.in_(data.patient_ids)).all()
+    # On charge les patients déjà en chambre pour que le solver calcule correctement l'espace
+    toutes_les_chambres = db.query(Chambre).options(joinedload(Chambre.patients)).all()
 
-    # 2. Récupérer l'état actuel de toutes les chambres
-    chambres = db.query(Chambre).all()
-    
-    # 3. L'ALGORITHME (Solver)
-    # On passe les objets SQLAlchemy directement
-    results = solver.assign_batch(patients_to_assign, chambres)
-    
-    # 4. Enregistrement (L'algorithme a déjà modifié les objets en mémoire)
-    db.commit()
-    
-    return {
-        "status": "success", 
-        "assigned_count": len(results),
-        "assignments": results # Ex: {patient_id: chambre_id}
-    }
+    if not patients_selectionnes:
+        raise HTTPException(status_code=404, detail="Aucun patient trouvé")
+
+    try:
+        # 2. APPEL DU SOLVER
+        resultats = solver.resoudre(patients_selectionnes, toutes_les_chambres)
+
+        # 3. Mise à jour en base
+        for p_id, c_id in resultats.items():
+            db.query(Patient).filter(Patient.id == p_id).update(
+                {Patient.chambre_id: c_id},
+                synchronize_session=False
+            )
+        
+        db.commit()
+        return {
+            "status": "success",
+            "count": len(resultats),
+            "assignments": resultats
+        }
+
+    except Exception as e:
+        db.rollback()
+        # Affiche l'erreur réelle dans les logs pour débugger
+        print(f"DEBUG SOLVER ERROR: {e}") 
+        raise HTTPException(status_code=500, detail=f"Erreur du solver : {str(e)}")

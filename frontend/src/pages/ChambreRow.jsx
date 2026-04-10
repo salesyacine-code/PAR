@@ -18,6 +18,9 @@ export default function ChambreRow({ chambre, onActionSuccess }) {
       <td className="p-4 font-bold text-slate-700 text-center">
         {chambre.numero}
       </td>
+      <td className="p-4 text-center text-slate-600">
+        {chambre.service}
+      </td>
       <td className="p-4">
         <div className="flex items-center gap-2">
           <div className="flex-1 bg-slate-200 rounded-full h-2 max-w-[100px]">

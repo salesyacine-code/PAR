@@ -1,99 +1,137 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  Checkbox, 
-  Select, 
-  MenuItem, 
-  IconButton, 
-  Tooltip,
-  Typography,
-  Chip
+  Checkbox, IconButton, Tooltip, Typography, Chip, Box,
+  Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button,
+  Snackbar, Alert, CircularProgress
 } from '@mui/material';
 import { Delete, Hotel } from '@mui/icons-material';
 
 export default function PatientRow({ patient, chambres, onActionSuccess, isSelected, onSelect }) {
-  
-  const handleAssign = async (chambreId) => {
-    if (!chambreId) return;
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/patients/${patient.id}/assigner/${chambreId}`, { 
-        method: "PUT" 
-      });
-      if (res.ok) onActionSuccess();
-    } catch (err) {
-      console.error("Erreur d'assignation", err);
-    }
-  };
+  // États pour la gestion de l'UI
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const handleDelete = async () => {
-    if (!window.confirm(`Supprimer le patient ${patient.nom} ?`)) return;
+  const chambreActuelle = chambres.find(c => c.id === patient.chambre_id);
+
+  /**
+   * Logique de suppression réelle
+   */
+  const confirmDelete = async () => {
+    setLoading(true);
+    setOpenConfirm(false);
     try {
       const res = await fetch(`http://127.0.0.1:8000/patients/delete/${patient.id}`, { 
         method: "DELETE" 
       });
-      if (res.ok) onActionSuccess();
+      
+      if (res.ok) {
+        onActionSuccess();
+      } else {
+        const errorData = await res.json();
+        // On affiche l'erreur du backend (ex: "Libérez d'abord la chambre")
+        setErrorMsg(errorData.detail || "Une erreur est survenue lors de la suppression.");
+        setOpenSnackbar(true);
+      }
     } catch (err) {
-      console.error("Erreur suppression", err);
+      setErrorMsg("Impossible de contacter le serveur.");
+      setOpenSnackbar(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <tr className={`hover:bg-slate-50 transition-colors ${isSelected ? 'bg-indigo-50/50' : ''}`}>
-      <td className="p-4">
-        <Checkbox 
-          size="small"
-          checked={isSelected} 
-          onChange={onSelect}
-          sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#4f46e5' } }}
-        />
-      </td>
-
-      <td className="p-4">
-        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
-          {patient.nom}
-        </Typography>
-      </td>
-
-      <td className="p-4">
-        <Chip 
-          label={patient.specialite || 'Général'} 
-          size="small" 
-          sx={{ fontSize: '10px', fontWeight: 'bold', bgcolor: '#f1f5f9', color: '#475569' }} 
-        />
-      </td>
-
-      <td className="p-4">
-        <Select
-          value={patient.chambre_id || ""}
-          onChange={(e) => handleAssign(e.target.value)}
-          displayEmpty
-          size="small"
-          variant="standard"
-          disableUnderline
-          sx={{ fontSize: '13px', color: '#4f46e5', fontWeight: 'bold' }}
-          startAdornment={<Hotel sx={{ fontSize: 16, mr: 1, color: '#94a3b8' }} />}
-        >
-          <MenuItem value="">
-            <em className="text-slate-400 not-italic text-xs">Non assigné</em>
-          </MenuItem>
-          {chambres.map(c => (
-            <MenuItem key={c.id} value={c.id} sx={{ fontSize: '13px' }}>
-              Chambre {c.numero} ({c.service || 'Sans service'})
-            </MenuItem>
-          ))}
-        </Select>
-      </td>
-
-      <td className="p-4 text-right">
-        <Tooltip title="Supprimer">
-          <IconButton 
-            onClick={handleDelete}
+    <>
+      <tr className={`hover:bg-slate-50 transition-colors border-b border-slate-100 ${isSelected ? 'bg-indigo-50/50' : ''}`}>
+        <td className="p-4 text-center">
+          <Checkbox 
             size="small"
-            sx={{ color: '#94a3b8', '&:hover': { color: '#ef4444', bgcolor: '#fee2e2' } }}
-          >
-            <Delete fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </td>
-    </tr>
+            checked={isSelected} 
+            onChange={onSelect}
+            sx={{ color: '#cbd5e1', '&.Mui-checked': { color: '#4f46e5' } }}
+          />
+        </td>
+
+        <td className="p-4">
+          <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+            {patient.nom} 
+          </Typography>
+        </td>
+
+        <td className="p-4">
+          <Chip 
+            label={patient.specialite || 'Général'} 
+            size="small" 
+            sx={{ fontSize: '11px', fontWeight: 'bold', bgcolor: '#f1f5f9', color: '#475569', borderRadius: '6px' }} 
+          />
+        </td>
+
+        <td className="p-4">
+          {chambreActuelle ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Hotel sx={{ fontSize: 18, color: '#6366f1' }} />
+              <Box>
+                <Typography variant="caption" sx={{ display: 'block', fontWeight: 'bold', color: '#1e293b', lineHeight: 1.2 }}>
+                  Chambre {chambreActuelle.numero}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '10px' }}>
+                  {chambreActuelle.service}
+                </Typography>
+              </Box>
+            </Box>
+          ) : (
+            <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic' }}>
+              Non assigné
+            </Typography>
+          )}
+        </td>
+
+        <td className="p-4 text-right">
+          <Tooltip title="Supprimer définitivement">
+            <IconButton 
+              onClick={() => setOpenConfirm(true)}
+              disabled={loading}
+              size="small"
+              sx={{ color: '#94a3b8', '&:hover': { color: '#ef4444', bgcolor: '#fee2e2' } }}
+            >
+              {loading ? <CircularProgress size={20} color="inherit" /> : <Delete fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+        </td>
+      </tr>
+
+      {/* --- COMPOSANTS DE FEEDBACK (Hors du flux du tableau) --- */}
+
+      {/* 1. Modal de confirmation de suppression */}
+      <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
+        <DialogTitle>Confirmer la suppression</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Voulez-vous vraiment supprimer le dossier de <strong>{patient.nom}</strong> ? 
+            Cette action est irréversible.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenConfirm(false)} color="inherit">Annuler</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained" autoFocus>
+            Supprimer
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 2. Notification d'erreur (Snackbar) */}
+      <Snackbar 
+        open={openSnackbar} 
+        autoHideDuration={5000} 
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert onClose={() => setOpenSnackbar(false)} severity="error" sx={{ width: '100%', fontWeight: 'bold' }}>
+          {errorMsg}
+        </Alert>
+      </Snackbar>
+    </>
   );
 }

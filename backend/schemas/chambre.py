@@ -1,18 +1,28 @@
 from pydantic import BaseModel
-from typing import List
-from .patient import PatientResponse
+from typing import List, Optional
+
+# Importe le schéma PatientResponse s'il est dans un autre fichier
+# Sinon, définis une version simplifiée pour le test
+class PatientInChambre(BaseModel):
+    id: int
+    nom: str
+    specialite: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
 
 class ChambreBase(BaseModel):
     numero: str
     capacite: int
-    service: str
+    service: Optional[str] = None # Accepter None au cas où
 
 class ChambreCreate(ChambreBase):
     pass
 
 class ChambreResponse(ChambreBase):
     id: int
-    patients: List[PatientResponse] = [] # Relation inverse automatique
+    # Utilise la version simplifiée ou assure-toi que List[] est bien géré
+    patients: List[PatientInChambre] = [] 
 
     class Config:
         from_attributes = True
