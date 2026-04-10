@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import Patient from "./Patient";
-import Chambre from "./Chambre";
-import AddPatientForm from "./AddPatient";
-import AddChambreForm from "./AddChambre";
+import { Routes, Route } from "react-router-dom";
+import MainLayout from "./layout/Layout";
+import Patient from "./pages/Patient"; // C'est ton composant de ligne patient
+import Chambre from "./pages/Chambre"; // C'est ton composant de carte chambre
+import Personnel from "./pages/Personnel";
 
 function App() {
   const [data, setData] = useState({ patients: [], chambres: [] });
@@ -13,62 +14,45 @@ function App() {
         fetch("http://127.0.0.1:8000/patients"),
         fetch("http://127.0.0.1:8000/chambres")
       ]);
-      
       const patients = await resP.json();
       const chambres = await resC.json();
-      
       setData({ patients, chambres });
     } catch (error) {
-      console.error("Erreur de chargement :", error);
+      console.error("Erreur :", error);
     }
   };
 
   useEffect(() => { fetchAll(); }, []);
 
   return (
-    // On utilise flex-direction: column pour que le titre soit en haut, puis les formulaires, puis les données
-    <div style={{ padding: "30px", fontFamily: "Arial, sans-serif", display: "flex", flexDirection: "column", gap: "20px" }}>
-      
-      <h1>🏥 Dashboard Hôpital</h1>
-      
-      {/* ZONE DES FORMULAIRES : Alignés horizontalement */}
-      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", backgroundColor: "#f9f9f9", padding: "20px", borderRadius: "10px" }}>
-        <AddPatientForm onPatientAdded={fetchAll} />
-        <AddChambreForm onChambreAdded={fetchAll} />
-      </div>
-
-      <hr style={{ width: "100%", border: "0.5px solid #eee" }} />
-
-      {/* ZONE D'AFFICHAGE : Deux colonnes principales */}
-      <div style={{ display: "flex", gap: "50px", alignItems: "flex-start" }}>
-        
-        {/* Colonne de gauche : Patients */}
-        <section style={{ flex: 1 }}>
-          <h2 style={{ borderBottom: "2px solid #3498db", paddingBottom: "10px" }}>Patients en attente</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "15px" }}>
-            {data.patients.filter(p => !p.chambre_id).map(p => (
-              <Patient 
-                key={p.id} 
-                patient={p} 
-                chambres={data.chambres} 
-                onActionSuccess={fetchAll} 
-              />
-            ))}
+    <MainLayout>
+      <Routes>
+        {/* ACCUEIL */}
+        <Route path="/" element={
+          <div className="p-6">
+            <h1 className="text-2xl font-bold text-slate-800">Dashboard Accueil</h1>
+            <p className="text-slate-500 mt-2">Sélectionnez une option dans le menu à gauche.</p>
           </div>
-        </section>
+        } />
 
-        {/* Colonne de droite : Chambres */}
-        <section style={{ flex: 2 }}>
-          <h2 style={{ borderBottom: "2px solid #2ecc71", paddingBottom: "10px" }}>Chambres</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "20px", marginTop: "15px" }}>
-            {data.chambres.map(c => (
-              <Chambre key={c.id} chambre={c} onActionSuccess={fetchAll} />
-            ))}
-          </div>
-        </section>
+        {/* PAGE PATIENTS : On boucle sur la liste ici */}
+      <Route path="/patients" element={
+  <Patient
+    patients={data.patients} 
+    chambres={data.chambres} 
+    refresh={fetchAll} 
+  />
+} />
+       
+        <Route path="/chambres" element={
+          <Chambre chambres={data.chambres}
+            refresh={fetchAll}
+          />
+        } />
 
-      </div>
-    </div>
+        <Route path="/personnel" element={<Personnel />} />
+      </Routes>
+    </MainLayout>
   );
 }
 

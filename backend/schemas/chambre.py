@@ -5,6 +5,7 @@ from .patient import PatientResponse
 class ChambreBase(BaseModel):
     numero: str
     capacite: int
+    service: str
 
 class ChambreCreate(ChambreBase):
     pass

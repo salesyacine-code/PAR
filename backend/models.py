@@ -7,12 +7,13 @@ class Chambre(Base):
     id = Column(Integer, primary_key=True, index=True)
     numero = Column(String, unique=True)
     capacite = Column(Integer, default=2)
+    service = Column(String)
     patients = relationship("Patient", back_populates="chambre")
 
 class Patient(Base):
     __tablename__ = "patients"
     id = Column(Integer, primary_key=True, index=True)
     nom = Column(String)
-    specialite = Column(String) # Ajouté car utilisé dans ton main.py
+    specialite = Column(String) 
     chambre_id = Column(Integer, ForeignKey("chambres.id"), nullable=True)
     chambre = relationship("Chambre", back_populates="patients")

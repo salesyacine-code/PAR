@@ -15,7 +15,11 @@ def get_chambres(db: Session = Depends(get_db)):
 @router.post("/", response_model=ChambreResponse)
 def create_chambre(data: ChambreCreate, db: Session = Depends(get_db)):
     new_chambre = Chambre(numero=data.numero, capacite=data.capacite)
+    exist_chambre=db.query(Chambre).filter_by(numero=new_chambre.numero).first()
+    if exist_chambre:
+        raise HTTPException(status_code=400, detail="Chambre déjà existante")
     db.add(new_chambre)
     db.commit()
     db.refresh(new_chambre)
     return new_chambre
+
