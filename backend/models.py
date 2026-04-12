@@ -15,6 +15,8 @@ class Patient(Base):
     __tablename__ = "patients"
     id = Column(Integer, primary_key=True, index=True)
     nom = Column(String)
+    age=Column(Integer)
+    sexe = Column(String)
     specialite = Column(String) 
     chambre_id = Column(Integer, ForeignKey("chambres.id"), nullable=True)
     chambre = relationship("Chambre", back_populates="patients")

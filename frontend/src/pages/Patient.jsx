@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import PatientRow from './PatientRow';
 import { 
   Button, Checkbox, TextField, InputAdornment, Dialog, DialogTitle, 
-  DialogContent, DialogActions, MenuItem, Typography, Box, Snackbar, Alert 
+  DialogContent, DialogActions, MenuItem, Typography, Box, Snackbar, Alert, 
+  Select
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import SearchIcon from '@mui/icons-material/Search';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 const Patient = ({ patients, chambres, refresh }) => {
+  const URL="http://192.168.108.179:8000"
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
-  const [newPatient, setNewPatient] = useState({ nom: '', specialite: '' });
+  const [newPatient, setNewPatient] = useState({ nom: '', specialite: '' , age:0, sexe:''});
   
   // États pour remplacer les alertes
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -28,7 +30,7 @@ const Patient = ({ patients, chambres, refresh }) => {
 
   const handleAddPatient = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/patients", {
+      const res = await fetch(`${URL}/patients`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newPatient)
@@ -36,7 +38,7 @@ const Patient = ({ patients, chambres, refresh }) => {
       if (res.ok) {
         refresh();
         setOpen(false);
-        setNewPatient({ nom: '', specialite: '' });
+        setNewPatient({ nom: '', specialite: '',  age:0, sexe:''});
         setSnackbar({ open: true, message: 'Patient ajouté avec succès', severity: 'success' });
       }
     } catch (err) {
@@ -47,7 +49,7 @@ const Patient = ({ patients, chambres, refresh }) => {
   const handleRunSolver = async () => {
     if (selectedIds.length === 0) return;
     try {
-      const res = await fetch("http://127.0.0.1:8000/patients/assign", {
+      const res = await fetch(`${URL}/patients/assign`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patient_ids: selectedIds })
@@ -148,6 +150,8 @@ const Patient = ({ patients, chambres, refresh }) => {
                 />
               </th>
               <th className="p-4">Patient</th>
+              <th className="p-4">Age</th>
+              <th className="p-4">Sexe</th>
               <th className="p-4">Spécialité</th>
               <th className="p-4">Chambre Actuelle</th>
               <th className="p-4 text-right">Actions</th>
@@ -180,6 +184,22 @@ const Patient = ({ patients, chambres, refresh }) => {
               value={newPatient.nom}
               onChange={(e) => setNewPatient({...newPatient, nom: e.target.value})}
             />
+            <TextField
+            label="Age"
+            type="number"
+            fullWidth
+            value={newPatient.age}
+            onChange={(e) => setNewPatient({...newPatient, age: parseInt(e.target.value)})}
+            />
+           <Select
+             label="Sexe"
+             fullWidth
+             value={newPatient.sexe}
+             onChange={(e) => setNewPatient({...newPatient, sexe: e.target.value})}
+           >
+             <MenuItem value="Masculin">Masculin</MenuItem>
+             <MenuItem value="Féminin">Féminin</MenuItem>
+           </Select>
             <TextField
               select
               label="Spécialité"

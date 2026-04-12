@@ -7,7 +7,8 @@ import {
 import { Delete, Hotel } from '@mui/icons-material';
 
 export default function PatientRow({ patient, chambres, onActionSuccess, isSelected, onSelect }) {
-  // États pour la gestion de l'UI
+ 
+  const URL="http://192.168.108.179:8000"
   const [openConfirm, setOpenConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -22,7 +23,7 @@ export default function PatientRow({ patient, chambres, onActionSuccess, isSelec
     setLoading(true);
     setOpenConfirm(false);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/patients/delete/${patient.id}`, { 
+      const res = await fetch(`${URL}/patients/delete/${patient.id}`, { 
         method: "DELETE" 
       });
       
@@ -59,7 +60,17 @@ export default function PatientRow({ patient, chambres, onActionSuccess, isSelec
             {patient.nom} 
           </Typography>
         </td>
-
+        <td className="p-4">  
+          <Typography variant="body2" sx={{ color: '#475569' }}>
+            {patient.age} ans
+          </Typography>
+        </td>
+        <td className="p-4">  
+          <Typography variant="body2" sx={{ color: '#475569' }}>
+            {patient.sexe}
+          </Typography>
+        </td>
+        
         <td className="p-4">
           <Chip 
             label={patient.specialite || 'Général'} 

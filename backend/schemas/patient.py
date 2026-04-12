@@ -3,6 +3,8 @@ from typing import Optional
 
 class PatientBase(BaseModel):
     nom: str
+    age: int
+    sexe: str
     specialite: str
 
 class PatientCreate(PatientBase):

@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
-# Importe le schéma PatientResponse s'il est dans un autre fichier
-# Sinon, définis une version simplifiée pour le test
 class PatientInChambre(BaseModel):
     id: int
     nom: str

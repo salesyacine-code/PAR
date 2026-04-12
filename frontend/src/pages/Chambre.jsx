@@ -11,13 +11,14 @@ import {
   MenuItem,
   InputAdornment
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+
 import SearchIcon from '@mui/icons-material/Search';
 
 const Chambre = ({ chambres, refresh }) => {
-  const [open, setOpen] = useState(false);
+  const URL="http://192.168.108.179:8000"
+ 
   const [searchTerm, setSearchTerm] = useState("");
-  const [newChambre, setNewChambre] = useState({ numero: '', capacite: '', service: '' });
+  
 
   // Filtrage des chambres pour la recherche
   const filteredChambres = chambres.filter(c => 
@@ -71,7 +72,7 @@ const Chambre = ({ chambres, refresh }) => {
         </tbody>
       </table>
 
-      {/* MODAL MUI (DIALOG) */}
+     
       
     </div>
   );

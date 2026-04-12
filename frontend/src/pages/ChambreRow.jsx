@@ -3,10 +3,10 @@ import React from 'react';
 export default function ChambreRow({ chambre, onActionSuccess }) {
   const occupation = chambre.patients?.length || 0;
   const estPleine = occupation >= chambre.capacite;
-
+  const URL="http://192.168.108.179:8000/"
   const libererPatient = async (pId) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/patients/liberer/${pId}`, { method: "put" });
+      const res = await fetch(`${URL}/patients/liberer/${pId}`, { method: "put" });
       if (res.ok) onActionSuccess();
     } catch (err) {
       console.error("Erreur libération", err);

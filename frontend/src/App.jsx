@@ -9,6 +9,7 @@ import { ArrowBack } from "@mui/icons-material";
 import { Button, Typography, Box } from "@mui/material";
 
 function App() {
+  const URL="http://192.168.108.179:8000"
   const [data, setData] = useState({ patients: [], chambres: [] });
   const [view, setView] = useState('grid'); // 'grid' ou 'chambres'
   const [selectedService, setSelectedService] = useState(null);
@@ -16,8 +17,8 @@ function App() {
   const fetchAll = async () => {
     try {
       const [resP, resC] = await Promise.all([
-        fetch("http://127.0.0.1:8000/patients/"),
-        fetch("http://127.0.0.1:8000/chambres/")
+        fetch(`${URL}/patients`), 
+        fetch(`${URL}/chambres`)
       ]);
       const patients = await resP.json();
       const chambres = await resC.json();
