@@ -1,0 +1,85 @@
+FULL PROJECT REQUIREMENTS
+
+========================
+BACKEND (Python)
+========================
+Environment:
+- Python 3.10+
+
+Virtual environment:
+python3 -m venv venv
+source venv/bin/activate
+
+Install dependencies:
+pip install fastapi uvicorn sqlalchemy
+
+Database:
+- SQLite (built-in Python)
+- File: test.db
+
+Optional (future):
+- psycopg2-binary (PostgreSQL)
+- pymysql (MySQL)
+
+Main stack:
+- FastAPI (API framework)
+- SQLAlchemy (ORM)
+- Uvicorn (ASGI server)
+
+Run backend:
+uvicorn main:app --reload
+
+
+========================
+FRONTEND (React + Vite)
+========================
+
+Create project:
+npm create vite@latest frontend
+cd frontend
+npm install
+
+Install dependencies:
+npm install @mui/material @emotion/react @emotion/styled
+npm install @mui/icons-material
+npm install tailwindcss @tailwindcss/vite
+
+Init Tailwind:
+npx tailwindcss init -p
+
+Tailwind config:
+- content: ./index.html, ./src/**/*.{js,ts,jsx,tsx}
+
+Main stack:
+- React (Vite)
+- Tailwind CSS (styling)
+- Material UI (UI components)
+
+Run frontend:
+npm run dev
+
+
+========================
+PROJECT FEATURES (suggested)
+========================
+- FastAPI REST API
+- SQLite database (users, data models)
+- CRUD operations
+- React dashboard
+- Material UI components (forms, tables, dialogs)
+- Tailwind for layout & responsiveness
+- Axios (API calls)
+
+========================
+ARCHITECTURE (recommended)
+========================
+backend/
+  main.py
+  database.py
+  models.py
+
+frontend/
+  src/
+    components/
+    pages/
+    services/

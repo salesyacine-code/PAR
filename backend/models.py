@@ -20,3 +20,15 @@ class Patient(Base):
     specialite = Column(String) 
     chambre_id = Column(Integer, ForeignKey("chambres.id"), nullable=True)
     chambre = relationship("Chambre", back_populates="patients")
+    
+    
+class Affectation(Base):
+    __tablename__ = "affectations"
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    chambre_id = Column(Integer, ForeignKey("chambres.id"))
+    patient = relationship("Patient")
+    chambre = relationship("Chambre")
+    date_affectation = Column(String)  # Stocke la date d'affectation
+    
+        
