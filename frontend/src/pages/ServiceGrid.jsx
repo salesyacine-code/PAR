@@ -9,6 +9,8 @@ import {
   Add as AddIcon 
 } from '@mui/icons-material';
 
+
+import { createChambre } from '../Api';
 const servicesMedicaux = [
   { id: 'Cardiologie', nom: 'Cardiologie', icone: <Favorite sx={{ fontSize: 40, color: '#ef4444' }} />, color: '#fee2e2' },
   { id: 'Urgences', nom: 'Urgences', icone: <Emergency sx={{ fontSize: 40, color: '#f59e0b' }} />, color: '#fef3c7' },
@@ -24,7 +26,7 @@ export default function ServiceGrid({ onServiceClick, refresh }) {
   const [newChambre, setNewChambre] = useState({ numero: '', capacite: '', service: '' });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const URL = "http://192.168.108.179:8000";
+  
 
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
@@ -49,34 +51,18 @@ export default function ServiceGrid({ onServiceClick, refresh }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${URL}/chambres/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          numero: String(newChambre.numero),
-          capacite: parseInt(newChambre.capacite),
-          service: newChambre.service
-        })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setSnackbar({ open: true, message: 'Chambre ajoutée avec succès !', severity: 'success' });
-        if (refresh) refresh();
-        handleClose();
-      } else {
-        // Gestion des erreurs spécifiques renvoyées par le backend (si dispo)
-        if (data.errors) {
-            setErrors(data.errors);
-        }
-        setSnackbar({ open: true, message: data.message || "Erreur lors de l'enregistrement", severity: 'error' });
-      }
+      await createChambre(newChambre);
+      setSnackbar({ open: true, message: 'Chambre ajoutée avec succès !', severity: 'success' });
+      if (refresh) refresh();
+      handleClose();
     } catch (err) {
-      setSnackbar({ open: true, message: "Erreur réseau : Impossible de joindre le serveur", severity: 'error' });
+      setSnackbar({ open: true, message: 'Erreur lors de l\'ajout de la chambre', severity: 'error' });
     } finally {
       setLoading(false);
     }
+
+
+     
   };
 
   const handleClose = () => {

@@ -7,24 +7,19 @@ import Personnel from "./pages/Personnel";
 import ServiceGrid from "./pages/ServiceGrid";
 import { ArrowBack } from "@mui/icons-material";
 import { Button, Typography, Box } from "@mui/material";
-
+import {getPatients, getChambres} from './Api';
 function App() {
-  const URL="http://192.168.108.179:8000"
+ 
   const [data, setData] = useState({ patients: [], chambres: [] });
   const [view, setView] = useState('grid'); // 'grid' ou 'chambres'
   const [selectedService, setSelectedService] = useState(null);
 
   const fetchAll = async () => {
     try {
-      const [resP, resC] = await Promise.all([
-        fetch(`${URL}/patients`), 
-        fetch(`${URL}/chambres`)
-      ]);
-      const patients = await resP.json();
-      const chambres = await resC.json();
-      setData({ patients, chambres });
-    } catch (error) {
-      console.error("Erreur lors de la récupération des données :", error);
+      const [patientsRes, chambresRes] = await Promise.all([getPatients(), getChambres()]);
+      setData({ patients: patientsRes.data, chambres: chambresRes.data });
+    } catch (err) {
+      console.error("Erreur lors du chargement des données", err);
     }
   };
 

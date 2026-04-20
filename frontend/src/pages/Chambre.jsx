@@ -15,7 +15,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 
 const Chambre = ({ chambres, refresh }) => {
-  const URL="http://192.168.108.179:8000"
+ 
  
   const [searchTerm, setSearchTerm] = useState("");
   

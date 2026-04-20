@@ -8,9 +8,9 @@ import {
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import SearchIcon from '@mui/icons-material/Search';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-
+import { getPatients, createPatient, assignPatient, libererPatient, deletePatient } from '../Api';
 const Patient = ({ patients, chambres, refresh }) => {
-  const URL="http://192.168.108.179:8000"
+  
   const [selectedIds, setSelectedIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
@@ -30,40 +30,27 @@ const Patient = ({ patients, chambres, refresh }) => {
 
   const handleAddPatient = async () => {
     try {
-      const res = await fetch(`${URL}/patients`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPatient)
-      });
-      if (res.ok) {
-        refresh();
-        setOpen(false);
-        setNewPatient({ nom: '', specialite: '',  age:0, sexe:''});
-        setSnackbar({ open: true, message: 'Patient ajouté avec succès', severity: 'success' });
-      }
+      await createPatient(newPatient);
+      refresh();
+      setOpen(false);
+      setNewPatient({ nom: '', specialite: '', age: 0, sexe: '' });
+      setSnackbar({ open: true, message: 'Patient ajouté avec succès', severity: 'success' });
     } catch (err) {
-      setSnackbar({ open: true, message: 'Erreur lors de la création', severity: 'error' });
+      setSnackbar({ open: true, message: 'Erreur lors de l\'ajout du patient', severity: 'error' });
     }
   };
 
   const handleRunSolver = async () => {
     if (selectedIds.length === 0) return;
     try {
-      const res = await fetch(`${URL}/patients/assign`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patient_ids: selectedIds })
-      });
-
-      if (res.ok) {
-        refresh();
-        setSelectedIds([]);
-        setSnackbar({ 
-          open: true, 
-          message: `Optimisation terminée : ${selectedIds.length} patient(s) assigné(s).`, 
-          severity: 'success' 
+      await assignPatient(selectedIds);
+      refresh();
+      setSelectedIds([]);
+      setSnackbar({ 
+        open: true, 
+        message: `Optimisation terminée : ${selectedIds.length} patient(s) assigné(s).`, 
+        severity: 'success' 
         });
-      }
     } catch (err) {
       setSnackbar({ open: true, message: 'Erreur lors de l\'optimisation', severity: 'error' });
     }

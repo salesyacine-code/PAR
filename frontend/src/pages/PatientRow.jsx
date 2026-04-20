@@ -5,10 +5,10 @@ import {
   Snackbar, Alert, CircularProgress
 } from '@mui/material';
 import { Delete, Hotel } from '@mui/icons-material';
-
+import {deletePatient} from '../Api';
 export default function PatientRow({ patient, chambres, onActionSuccess, isSelected, onSelect }) {
  
-  const URL="http://192.168.108.179:8000"
+ 
   const [openConfirm, setOpenConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -23,20 +23,10 @@ export default function PatientRow({ patient, chambres, onActionSuccess, isSelec
     setLoading(true);
     setOpenConfirm(false);
     try {
-      const res = await fetch(`${URL}/patients/delete/${patient.id}`, { 
-        method: "DELETE" 
-      });
-      
-      if (res.ok) {
-        onActionSuccess();
-      } else {
-        const errorData = await res.json();
-        // On affiche l'erreur du backend (ex: "Libérez d'abord la chambre")
-        setErrorMsg(errorData.detail || "Une erreur est survenue lors de la suppression.");
-        setOpenSnackbar(true);
-      }
+      await deletePatient(patient.id);
+      onActionSuccess();
     } catch (err) {
-      setErrorMsg("Impossible de contacter le serveur.");
+      setErrorMsg('Erreur lors de la suppression du patient');
       setOpenSnackbar(true);
     } finally {
       setLoading(false);
